@@ -14,10 +14,13 @@ def analyze_string(smiles, letters):
         else:
             letters.update({letter:1})
     letters.update({'@':1})
+
+def common_elements(elem_a, elem_b):
+    
     
 chemicals = {}
 letters = {}
 open_file(chemicals)
 analyze_string(chemicals.get('ZINC00006923'), letters)
-print(chemicals)
+print(chemicals.get('ZINC00006923'))
 print(letters)
