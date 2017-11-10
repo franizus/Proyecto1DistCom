@@ -3,6 +3,7 @@ import csv
 import math
 import sys
 import time
+import tempfile
 from threading import Thread
 
 
@@ -79,7 +80,7 @@ def solve_quadratic_equation(c_value):
     return abs((-1 + math.sqrt(1 - 4 * c_value)) / 2)
 
 
-def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_chemicals_list):
+def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_temp_file):
     """Fills a list with the comparison of the chemical compounds between two pivots in the list."""
     for i in range(pivot_min, pivot_max):
         for j in range(i):
@@ -88,25 +89,29 @@ def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_chemicals_
             coef = jac_tan_coefficient(number_chemical_elements(letters_a),
                                        number_chemical_elements(letters_b),
                                        number_common_elements(letters_a, letters_b))
-            row_aux = (chemicals_list[i][0], chemicals_list[j][0], coef)
-            compared_chemicals_list.append(row_aux)
+            row = (chemicals_list[i][0], chemicals_list[j][0], coef)
+            compared_temp_file.write(row[0] + "\t" + row[1] + "\t" + str(row[2]) + "\n")
 
 
 def start_join_all(thread_array):
     """Starts and joins all the threads in the array."""
-    for t in thread_array:
-        t.start()
-    for t in thread_array:
-        t.join()
+    for thread in thread_array:
+        thread.start()
+    for thread in thread_array:
+        thread.join()
 
 
 def write_file(compared_chemicals_list):
     """Writes a tsv file with the compared chemicals."""
     with open("chem_sim_total.tsv", "w") as record_file:
         record_file.write("Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n")
-        for row in compared_chemicals_list:
-            record_file.write(row[0] + "\t" + row[1] +
-                              "\t" + str(row[2]) + "\n")
+        for temp_file in compared_chemicals_list:
+            try:
+                print(temp_file.name)
+                temp_file.seek(0)
+                record_file.write(temp_file.read())
+            finally:
+                temp_file.close()   
 
 
 if __name__ == "__main__":
@@ -114,8 +119,10 @@ if __name__ == "__main__":
     CHEMICALS_LIST = open_file()
     PIVOTS_LIST = get_pivots(len(CHEMICALS_LIST) - 1, NUMBER_THREADS)
 
-    start = time.time()
-    compared_chemicals = [[], [], [], [], [], [], [], []]
+    START_TIME = time.time()
+    compared_chemicals = []
+    for index in range(NUMBER_THREADS):
+        compared_chemicals.append(tempfile.NamedTemporaryFile(mode='r+', delete=False))
     threads = []
     for index in range(NUMBER_THREADS):
         threads.append(Thread(target=fill_compared_list, args=(
@@ -124,12 +131,11 @@ if __name__ == "__main__":
             compared_chemicals[index], )))
     start_join_all(threads)
 
-    compared_chemicals_total = []
+    END_TIME = time.time()
+    print(END_TIME - START_TIME)
+    """compared_chemicals_total = []
     for index in range(NUMBER_THREADS):
         compared_chemicals_total += compared_chemicals[index]
-    
-    end = time.time()
-    print(end - start)
     compared_chemicals_total = sorted(
-        compared_chemicals_total, key=lambda id: id[0])
-    write_file(compared_chemicals_total)
+        compared_chemicals_total, key=lambda id: id[0])"""
+    write_file(compared_chemicals)
