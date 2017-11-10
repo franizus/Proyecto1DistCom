@@ -4,6 +4,7 @@ import math
 import sys
 import time
 import tempfile
+import multiprocessing
 from threading import Thread
 
 
@@ -115,14 +116,14 @@ def write_file(compared_chemicals_list):
 
 
 if __name__ == "__main__":
-    NUMBER_THREADS = int(sys.argv[1])
+    NUMBER_THREADS = multiprocessing.cpu_count()
     CHEMICALS_LIST = open_file()
     PIVOTS_LIST = get_pivots(len(CHEMICALS_LIST) - 1, NUMBER_THREADS)
 
     START_TIME = time.time()
     compared_chemicals = []
     for index in range(NUMBER_THREADS):
-        compared_chemicals.append(tempfile.NamedTemporaryFile(mode='r+', delete=False))
+        compared_chemicals.append(tempfile.NamedTemporaryFile(mode='r+'))
     threads = []
     for index in range(NUMBER_THREADS):
         threads.append(Thread(target=fill_compared_list, args=(
@@ -133,9 +134,4 @@ if __name__ == "__main__":
 
     END_TIME = time.time()
     print(END_TIME - START_TIME)
-    """compared_chemicals_total = []
-    for index in range(NUMBER_THREADS):
-        compared_chemicals_total += compared_chemicals[index]
-    compared_chemicals_total = sorted(
-        compared_chemicals_total, key=lambda id: id[0])"""
     write_file(compared_chemicals)
