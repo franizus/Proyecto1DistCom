@@ -65,20 +65,11 @@ def jac_tan_coefficient(elements_a, elements_b, common_elements):
 def get_pivots(chemicals_length, number_processors):
     """Calculates the pivots to divide the chemicals between the threads."""
     pivots_list = []
-    total = (chemicals_length**2 + chemicals_length) / 2
-    elements_per_processor = int(total / number_processors)
     pivots_list.append(1)
-    for i in range(number_processors - 1):
-        pivots_list.append(
-            int(round(solve_quadratic_equation(elements_per_processor * (i + 1)))) + 1)
-    pivots_list.append(chemicals_length + 1)
+    for i in range(1, number_processors):
+        pivots_list.append(int(round(math.sqrt(i / number_processors) * chemicals_length)))
+    pivots_list.append(chemicals_length)
     return pivots_list
-
-
-def solve_quadratic_equation(c_value):
-    """Solves a quadratic equation in the form ax2 + bx + c = 0, given c."""
-    c_value *= -2
-    return abs((-1 + math.sqrt(1 - 4 * c_value)) / 2)
 
 
 def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_temp_file):
@@ -118,7 +109,7 @@ def write_file(compared_chemicals_list):
 if __name__ == "__main__":
     NUMBER_THREADS = multiprocessing.cpu_count()
     CHEMICALS_LIST = open_file()
-    PIVOTS_LIST = get_pivots(len(CHEMICALS_LIST) - 1, NUMBER_THREADS)
+    PIVOTS_LIST = get_pivots(len(CHEMICALS_LIST), NUMBER_THREADS)
 
     START_TIME = time.time()
     compared_chemicals = []
