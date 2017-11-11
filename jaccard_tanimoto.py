@@ -74,7 +74,8 @@ def get_pivots(chemicals_length, number_processors):
     copy_pivots = pivots_list.copy()
     n_pivots = len(pivots_list)
     for i in range(1, n_pivots - 1):
-        pivots_list[i] = copy_pivots[n_pivots - i] - copy_pivots[n_pivots - i - 1] + pivots_list[i - 1]
+        pivots_list[i] = copy_pivots[n_pivots - i] - \
+            copy_pivots[n_pivots - i - 1] + pivots_list[i - 1]
     pivots_list[0] = 0
     return pivots_list
 
