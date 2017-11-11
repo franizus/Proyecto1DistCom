@@ -11,11 +11,12 @@ from threading import Thread
 def open_file():
     """Opens a tsv file and returns a list with the data."""
     chemicals_list = []
-    with open("ZINC_chemicals.tsv") as file:
+    with open("chemicals.tsv") as file:
         reader = csv.reader(file, delimiter="\t", quotechar='"')
         for row in reader:
             row_aux = (row[1], row[3])
             chemicals_list.append(row_aux)
+    chemicals_list = sorted(chemicals_list, key=lambda id: id[0])
     return chemicals_list
 
 
@@ -67,22 +68,29 @@ def get_pivots(chemicals_length, number_processors):
     pivots_list = []
     pivots_list.append(1)
     for i in range(1, number_processors):
-        pivots_list.append(int(round(math.sqrt(i / number_processors) * chemicals_length)))
-    pivots_list.append(chemicals_length)
+        pivots_list.append(
+            int(round(math.sqrt(i / number_processors) * chemicals_length)))
+    pivots_list.append(chemicals_length - 1)
+    copy_pivots = pivots_list.copy()
+    n_pivots = len(pivots_list)
+    for i in range(1, n_pivots - 1):
+        pivots_list[i] = copy_pivots[n_pivots - i] - copy_pivots[n_pivots - i - 1] + pivots_list[i - 1]
+    pivots_list[0] = 0
     return pivots_list
 
 
 def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_temp_file):
     """Fills a list with the comparison of the chemical compounds between two pivots in the list."""
     for i in range(pivot_min, pivot_max):
-        for j in range(i):
+        for j in range(i + 1, len(chemicals_list)):
             letters_a = analyze_string(chemicals_list[i][1])
             letters_b = analyze_string(chemicals_list[j][1])
             coef = jac_tan_coefficient(number_chemical_elements(letters_a),
                                        number_chemical_elements(letters_b),
                                        number_common_elements(letters_a, letters_b))
             row = (chemicals_list[i][0], chemicals_list[j][0], coef)
-            compared_temp_file.write(row[0] + "\t" + row[1] + "\t" + str(row[2]) + "\n")
+            compared_temp_file.write(
+                row[0] + "\t" + row[1] + "\t" + str(row[2]) + "\n")
 
 
 def start_join_all(thread_array):
@@ -103,7 +111,7 @@ def write_file(compared_chemicals_list):
                 temp_file.seek(0)
                 record_file.write(temp_file.read())
             finally:
-                temp_file.close()   
+                temp_file.close()
 
 
 if __name__ == "__main__":

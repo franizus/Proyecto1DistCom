@@ -1,17 +1,5 @@
 #include <stdio.h>
 
-struct ElementTuple
-{
-    char id[12];
-    char chemical[150];
-};
-
-struct CharacterCount
-{
-    char character;
-    int count;
-};
-
 void openFile(struct ElementTuple *tuple);
 {
     FILE *fptr;
