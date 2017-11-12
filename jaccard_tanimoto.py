@@ -96,9 +96,12 @@ def start_join_all(thread_array):
 
 def print_to_console(number_threads, compared_chemicals_list):
     """Prints in console the compared chemicals."""
+    counter = 0
     for i in range(number_threads):
         for j in compared_chemicals_list[i]:
+            counter += 1
             print(j)
+    print(counter)
 
 
 if __name__ == "__main__":
