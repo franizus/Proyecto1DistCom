@@ -94,14 +94,25 @@ def start_join_all(thread_array):
         thread.join()
 
 
-def print_to_console(number_threads, compared_chemicals_list):
+def write_file(number_threads, compared_chemicals_list, total_time):
+    """Writes a tsv file with the compared chemicals."""
+    with open("chem_sim_total.tsv", "w") as record_file:
+        record_file.write("Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n")
+        for i in range(number_threads):
+            for chemical in compared_chemicals_list[i]:
+                record_file.write(chemical[0] + "\t" + chemical[1] + "\t" + str(chemical[2]) + "\n")
+        record_file.write("Total time = " + total_time + " [s]")
+
+
+def print_to_console(number_threads, compared_chemicals_list, total_time):
     """Prints in console the compared chemicals."""
     counter = 0
     for i in range(number_threads):
-        for j in compared_chemicals_list[i]:
+        for chemical in compared_chemicals_list[i]:
             counter += 1
-            print(j)
+            print(chemical)
     print(counter)
+    print(total_time)
 
 
 if __name__ == "__main__":
@@ -122,5 +133,6 @@ if __name__ == "__main__":
     start_join_all(threads)
 
     END_TIME = time.time()
-    print_to_console(NUMBER_THREADS, compared_chemicals)
-    print(END_TIME - START_TIME)
+    TOTAL_TIME = END_TIME - START_TIME
+    write_file(NUMBER_THREADS, compared_chemicals, TOTAL_TIME)
+    #print_to_console(NUMBER_THREADS, compared_chemicals, TOTAL_TIME)
