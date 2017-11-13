@@ -91,10 +91,10 @@ std::vector<int> getPivots(int chemicalsLength, int numberProcessors)
     return pivotsList;
 }
 
-void fillComparedList(std::vector<std::tuple<std::string, std::string>> chemicalsList, int pivotMin, 
-    int pivotMax, std::vector<std::tuple<std::string, std::string, float>> &comparedChemicalsList)
+std::vector<std::tuple<std::string, std::string, float>> fillComparedList(
+    std::vector<std::tuple<std::string, std::string>> chemicalsList, int pivotMin, int pivotMax)
 {
-    std::vector<std::tuple<std::string, std::string, float>> row;
+    std::vector<std::tuple<std::string, std::string, float>> comparedChemicalsList;
     std::map<char, int> lettersA, lettersB;
     float coefficient;
     for (int i = pivotMin; i < pivotMax; i++)
@@ -111,6 +111,7 @@ void fillComparedList(std::vector<std::tuple<std::string, std::string>> chemical
                                             coefficient));
         }
     }
+    return comparedChemicalsList;
 }
 
 void writeFile(std::vector<std::vector<std::tuple<std::string, std::string, float>>> comparedChemicalsList, 
@@ -141,9 +142,7 @@ int main()
         int pid = omp_get_thread_num();
         int pivotMin = pivots[pid];
         int pivotMax = pivots[pid + 1];
-        std::vector<std::tuple<std::string, std::string, float>> comparedChemicalsList;
-        fillComparedList(chemicalsList, pivotMin, pivotMax, comparedChemicalsList);
-        comparedChemicals[pid] = comparedChemicalsList;
+        comparedChemicals[pid] = fillComparedList(chemicalsList, pivotMin, pivotMax);;
     }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsedSeconds = end - start;
