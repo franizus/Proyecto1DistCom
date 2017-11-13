@@ -118,7 +118,7 @@ void writeFile(std::vector<std::vector<std::tuple<std::string, std::string, floa
 {
     std::ofstream ofs("chem_sim_total_C++.tsv", std::ofstream::out);
     ofs << "Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n";
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < numberThreads; i++)
     {
         for (int j = 0; j < comparedChemicalsList[i].size(); j++)
         {
@@ -134,26 +134,17 @@ int main()
     std::vector<std::tuple<std::string, std::string>> chemicalsList = openFile();
     std::vector<int> pivots = getPivots(chemicalsList.size(), numberThreads);
     std::vector<std::vector<std::tuple<std::string, std::string, float>>> comparedChemicals;
-
+    comparedChemicals.resize(8);
 	auto start = std::chrono::system_clock::now();
-    /*#pragma omp parallel num_threads(numberThreads)
+    #pragma omp parallel num_threads(numberThreads)
     {
+        int pid = omp_get_thread_num();
+        int pivotMin = pivots[pid];
+        int pivotMax = pivots[pid + 1];
         std::vector<std::tuple<std::string, std::string, float>> comparedChemicalsList;
-        int pivotMin = pivots[omp_get_thread_num()];
-        int pivotMax = pivots[omp_get_thread_num() + 1];
         fillComparedList(chemicalsList, pivotMin, pivotMax, comparedChemicalsList);
-        #pragma omp critical
-        {
-            for (int i = 0; i < numberThreads; i++)
-            {
-                comparedChemicals.push_back(comparedChemicalsList);
-            }
-        }
-    }*/
-    std::vector<std::tuple<std::string, std::string, float>> comparedChemicalsList;
-    fillComparedList(chemicalsList, 0, 15, comparedChemicalsList);
-    comparedChemicals.push_back(comparedChemicalsList);
-    
+        comparedChemicals[pid] = comparedChemicalsList;
+    }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsedSeconds = end - start;
     
