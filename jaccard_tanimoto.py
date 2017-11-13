@@ -9,12 +9,11 @@ from threading import Thread
 def open_file():
     """Opens a tsv file and returns a list with the data."""
     chemicals_list = []
-    with open("ZINC_chemicals.tsv") as file:
+    with open("chemicals.tsv") as file:
         reader = csv.reader(file, delimiter="\t", quotechar='"')
         for row in reader:
             row_aux = (row[1], row[3])
             chemicals_list.append(row_aux)
-    chemicals_list = sorted(chemicals_list, key=lambda id: id[0])
     return chemicals_list
 
 
@@ -33,22 +32,17 @@ def analyze_string(chemical_compound):
     return analyzed_string
 
 
-def number_common_elements(chemical_a, chemical_b):
+def get_number_common_elements(chemical_a, chemical_b):
     """Returns the number of common elements between chemical \
     compound a and chemical compound b."""
-    copy_b = chemical_b.copy()
     number_elements = 0
     for key_a in chemical_a:
-        for key_b in copy_b:
-            if key_a == key_b:
-                number_elements += min(chemical_a.get(key_a),
-                                       chemical_b.get(key_b))
-                del copy_b[key_b]
-                break
+        if key_a in chemical_b:
+            number_elements += min(chemical_a.get(key_a), chemical_b.get(key_a))
     return number_elements
 
 
-def number_chemical_elements(chemical_compound):
+def get_number_chemical_elements(chemical_compound):
     """Returns the number of elements in a chemical compound."""
     number_elements = 0
     for key in chemical_compound:
@@ -56,7 +50,7 @@ def number_chemical_elements(chemical_compound):
     return number_elements
 
 
-def jac_tan_coefficient(elements_a, elements_b, common_elements):
+def get_jac_tan_coefficient(elements_a, elements_b, common_elements):
     """Returns the coefficient of Jaccard/Tanimoto between two chemical compounds."""
     return round((common_elements / (elements_a + elements_b - common_elements)), 2)
 
@@ -64,11 +58,10 @@ def jac_tan_coefficient(elements_a, elements_b, common_elements):
 def get_pivots(chemicals_length, number_processors):
     """Calculates the pivots to divide the chemicals between the threads."""
     pivots_list = []
-    tolal_elements = (chemicals_length**2) / 2
     pivots_list.append(0)
-    for i in range(1, number_processors):
+    for i in range(number_processors - 1, 0, -1):
         pivots_list.append(
-            int(round(tolal_elements - (math.sqrt(i / number_processors) * chemicals_length))))
+            int(round(chemicals_length - (math.sqrt(i / number_processors) * chemicals_length))))
     pivots_list.append(chemicals_length - 1)
     return pivots_list
 
@@ -79,9 +72,9 @@ def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_chemicals_
         for j in range(i + 1, len(chemicals_list)):
             letters_a = analyze_string(chemicals_list[i][1])
             letters_b = analyze_string(chemicals_list[j][1])
-            coef = jac_tan_coefficient(number_chemical_elements(letters_a),
-                                       number_chemical_elements(letters_b),
-                                       number_common_elements(letters_a, letters_b))
+            coef = get_jac_tan_coefficient(get_number_chemical_elements(letters_a),
+                                           get_number_chemical_elements(letters_b),
+                                           get_number_common_elements(letters_a, letters_b))
             row = (chemicals_list[i][0], chemicals_list[j][0], coef)
             compared_chemicals_list.append(row)
 
@@ -96,12 +89,13 @@ def start_join_all(thread_array):
 
 def write_file(number_threads, compared_chemicals_list, total_time):
     """Writes a tsv file with the compared chemicals."""
-    with open("chem_sim_total.tsv", "w") as record_file:
+    with open("chem_sim_total_Python.tsv", "w") as record_file:
         record_file.write("Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n")
         for i in range(number_threads):
             for chemical in compared_chemicals_list[i]:
-                record_file.write(chemical[0] + "\t" + chemical[1] + "\t" + str(chemical[2]) + "\n")
-        record_file.write("Total time = " + total_time + " [s]")
+                record_file.write(
+                    chemical[0] + "\t" + chemical[1] + "\t" + str(chemical[2]) + "\n")
+        record_file.write("Total time = " + str(total_time) + " [s]")
 
 
 def print_to_console(number_threads, compared_chemicals_list, total_time):
