@@ -49,8 +49,13 @@ def get_number_chemical_elements(chemical_compound):
     return number_elements
 
 
-def get_jac_tan_coefficient(elements_a, elements_b, common_elements):
+def get_jac_tan_coefficient(chemical_a, chemical_b):
     """Returns the coefficient of Jaccard/Tanimoto between two chemical compounds."""
+    letters_a = analyze_string(chemical_a)
+    letters_b = analyze_string(chemical_b)
+    elements_a = get_number_chemical_elements(letters_a)
+    elements_b = get_number_chemical_elements(letters_b)
+    common_elements = get_number_common_elements(letters_a, letters_b)
     return round((common_elements / (elements_a + elements_b - common_elements)), 2)
 
 
@@ -70,11 +75,7 @@ def fill_compared_list(chemicals_list, pivot_min, pivot_max, queues_list):
     compared_chemicals_list = []
     for i in range(pivot_min, pivot_max):
         for j in range(i + 1, len(chemicals_list)):
-            letters_a = analyze_string(chemicals_list[i][1])
-            letters_b = analyze_string(chemicals_list[j][1])
-            coef = get_jac_tan_coefficient(get_number_chemical_elements(letters_a),
-                                           get_number_chemical_elements(letters_b),
-                                           get_number_common_elements(letters_a, letters_b))
+            coef = get_jac_tan_coefficient(chemicals_list[i][1], chemicals_list[j][1])
             row = chemicals_list[i][0] + "\t" + chemicals_list[j][0] + "\t" + str(coef)
             compared_chemicals_list.append(row)
     queues_list.put(compared_chemicals_list)

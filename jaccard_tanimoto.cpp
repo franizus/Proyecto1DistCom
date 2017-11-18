@@ -18,7 +18,7 @@ std::vector<std::tuple<std::string, std::string>> openFile()
     std::ifstream infile("ZINC_chemicals.tsv");
     std::vector<std::tuple<std::string, std::string>> list;
 
-    while(std::getline(infile, chemicalString))
+    while (std::getline(infile, chemicalString))
     {
         std::istringstream iss(chemicalString);
         std::vector<std::string> chemical;
@@ -36,7 +36,7 @@ std::vector<std::tuple<std::string, std::string>> openFile()
 std::map<char, int> analyzeString(std::string chemicalCompound)
 {
     std::map<char, int> analyzedString;
-    for(char& c : chemicalCompound)
+    for (char &c : chemicalCompound)
     {
         if (analyzedString.count(c) > 0)
         {
@@ -58,7 +58,7 @@ std::map<char, int> analyzeString(std::string chemicalCompound)
 int getNumberCommonElements(std::map<char, int> chemicalA, std::map<char, int> chemicalB)
 {
     int numberElements = 0;
-    for(auto& key : chemicalA)
+    for (auto &key : chemicalA)
     {
         if (chemicalB.count(key.first) > 0)
         {
@@ -72,7 +72,7 @@ int getNumberCommonElements(std::map<char, int> chemicalA, std::map<char, int> c
 int getNumberChemicalElements(std::map<char, int> chemicalCompound)
 {
     int numberElements = 0;
-    for(auto& key : chemicalCompound)
+    for (auto &key : chemicalCompound)
     {
         numberElements += key.second;
     }
@@ -80,19 +80,25 @@ int getNumberChemicalElements(std::map<char, int> chemicalCompound)
 }
 
 //Returns the coefficient of Jaccard/Tanimoto between two chemical compounds.
-float getJacTanCoefficient(int elementsA, int elementsB, int commonElements)
+float getJacTanCoefficient(std::string chemicalA, std::string chemicalB)
 {
-    return roundf(((float) commonElements / (elementsA + elementsB - commonElements)) * 100) / 100;
+    std::map<char, int> lettersA, lettersB;
+    lettersA = analyzeString(chemicalA);
+    lettersB = analyzeString(chemicalB);
+    int elementsA = getNumberChemicalElements(lettersA);
+    int elementsB = getNumberChemicalElements(lettersB);
+    int commonElements = getNumberCommonElements(lettersA, lettersB);
+    return roundf(((float)commonElements / (elementsA + elementsB - commonElements)) * 100) / 100;
 }
 
 //Calculates the pivots to divide the chemicals between the threads.
 std::vector<int> getPivots(int chemicalsLength, int numberProcessors)
 {
-    std::vector<int> pivotsList;    
+    std::vector<int> pivotsList;
     pivotsList.push_back(0);
     for (int i = numberProcessors - 1; i >= 1; i--)
     {
-        pivotsList.push_back(int(roundf(chemicalsLength - (sqrt((float) i / numberProcessors) * chemicalsLength))));
+        pivotsList.push_back(int(roundf(chemicalsLength - (sqrt((float)i / numberProcessors) * chemicalsLength))));
     }
     pivotsList.push_back(chemicalsLength - 1);
     return pivotsList;
@@ -103,17 +109,14 @@ std::vector<std::string> fillComparedList(
     std::vector<std::tuple<std::string, std::string>> chemicalsList, int pivotMin, int pivotMax)
 {
     std::vector<std::string> comparedChemicalsList;
-    std::map<char, int> lettersA, lettersB;
+
     float coefficient;
     for (int i = pivotMin; i < pivotMax; i++)
     {
         for (int j = i + 1; j < chemicalsList.size(); j++)
         {
-            lettersA = analyzeString(std::get<1>(chemicalsList.at(i)));
-            lettersB = analyzeString(std::get<1>(chemicalsList.at(j)));
-            coefficient = getJacTanCoefficient(getNumberChemicalElements(lettersA), 
-                                               getNumberChemicalElements(lettersB), 
-                                               getNumberCommonElements(lettersA, lettersB));
+            coefficient = getJacTanCoefficient(std::get<1>(chemicalsList.at(i)),
+                                               std::get<1>(chemicalsList.at(j)));
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << coefficient;
             comparedChemicalsList.push_back(std::get<0>(chemicalsList.at(i)) + "\t" +
@@ -125,8 +128,8 @@ std::vector<std::string> fillComparedList(
 }
 
 //Writes a tsv file with the compared chemicals.
-void writeFile(std::vector<std::vector<std::string>> comparedChemicalsList, 
-    int numberThreads, std::chrono::duration<double> elapsedSeconds)
+void writeFile(std::vector<std::vector<std::string>> comparedChemicalsList,
+               int numberThreads, std::chrono::duration<double> elapsedSeconds)
 {
     std::ofstream ofs("chem_sim_total_C++.tsv", std::ofstream::out);
     ofs << "Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n";
@@ -135,15 +138,15 @@ void writeFile(std::vector<std::vector<std::string>> comparedChemicalsList,
         std::cout << comparedChemicalsList[i].size() << "\n";
         for (int j = 0; j < comparedChemicalsList[i].size(); j++)
         {
-             ofs << comparedChemicalsList.at(i).at(j) << "\n";
+            ofs << comparedChemicalsList.at(i).at(j) << "\n";
         }
     }
     ofs << "Total time = " << elapsedSeconds.count() << " [s]\n";
 }
 
 //Prints in console the compared chemicals.
-void printToConsole(std::vector<std::vector<std::string>> comparedChemicalsList, 
-    int numberThreads, std::chrono::duration<double> elapsedSeconds)
+void printToConsole(std::vector<std::vector<std::string>> comparedChemicalsList,
+                    int numberThreads, std::chrono::duration<double> elapsedSeconds)
 {
     int counter = 0;
     for (int i = 0; i < numberThreads; i++)
@@ -154,7 +157,7 @@ void printToConsole(std::vector<std::vector<std::string>> comparedChemicalsList,
             std::cout << comparedChemicalsList.at(i).at(j) << "\n";
         }
     }
-    std::cout << "Total Elements = " <<  counter << "\n";
+    std::cout << "Total Elements = " << counter << "\n";
     std::cout << "Total time = " << elapsedSeconds.count() << " [s]\n";
 }
 
@@ -165,17 +168,17 @@ int main()
     std::vector<int> pivots = getPivots(chemicalsList.size(), numberThreads);
     std::vector<std::vector<std::string>> comparedChemicals;
     comparedChemicals.resize(8);
-	auto start = std::chrono::system_clock::now();
+    auto start = std::chrono::system_clock::now();
     #pragma omp parallel num_threads(numberThreads)
     {
         int pid = omp_get_thread_num();
         int pivotMin = pivots[pid];
         int pivotMax = pivots[pid + 1];
-        comparedChemicals[pid] = fillComparedList(chemicalsList, pivotMin, pivotMax);;
+        comparedChemicals[pid] = fillComparedList(chemicalsList, pivotMin, pivotMax);
     }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsedSeconds = end - start;
-    
+
     writeFile(comparedChemicals, numberThreads, elapsedSeconds);
     //printToConsole(comparedChemicals, numberThreads, elapsedSeconds);
 
