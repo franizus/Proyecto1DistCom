@@ -9,7 +9,7 @@ from threading import Thread
 def open_file():
     """Opens a tsv file and returns a list with the data."""
     chemicals_list = []
-    with open("ZINC_chemicals1.tsv") as file:
+    with open("chemicals.tsv") as file:
         reader = csv.reader(file, delimiter="\t", quotechar='"')
         for row in reader:
             row_aux = (row[1], row[3])
@@ -105,8 +105,8 @@ def print_to_console(number_threads, compared_chemicals_list, total_time):
         for chemical in compared_chemicals_list[i]:
             counter += 1
             print(chemical)
-    print(counter)
-    print(total_time)
+    print("Total Elements = " + str(counter))
+    print("Total time = " + str(total_time) + " [s]")
 
 
 if __name__ == "__main__":
