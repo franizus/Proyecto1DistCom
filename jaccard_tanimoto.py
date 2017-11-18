@@ -9,7 +9,7 @@ from threading import Thread
 def open_file():
     """Opens a tsv file and returns a list with the data."""
     chemicals_list = []
-    with open("chemicals.tsv") as file:
+    with open("ZINC_chemicals1.tsv") as file:
         reader = csv.reader(file, delimiter="\t", quotechar='"')
         for row in reader:
             row_aux = (row[1], row[3])
@@ -75,7 +75,7 @@ def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_chemicals_
             coef = get_jac_tan_coefficient(get_number_chemical_elements(letters_a),
                                            get_number_chemical_elements(letters_b),
                                            get_number_common_elements(letters_a, letters_b))
-            row = (chemicals_list[i][0], chemicals_list[j][0], coef)
+            row = chemicals_list[i][0] + "\t" + chemicals_list[j][0] + "\t" + str(coef)
             compared_chemicals_list.append(row)
 
 
@@ -92,10 +92,10 @@ def write_file(number_threads, compared_chemicals_list, total_time):
     with open("chem_sim_total_Python.tsv", "w") as record_file:
         record_file.write("Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n")
         for i in range(number_threads):
+            print(len(compared_chemicals_list[i]))
             for chemical in compared_chemicals_list[i]:
-                record_file.write(
-                    chemical[0] + "\t" + chemical[1] + "\t" + str(chemical[2]) + "\n")
-        record_file.write("Total time = " + str(total_time) + " [s]")
+                record_file.write(chemical + "\n")
+        record_file.write("Total time = " + str(total_time) + " [s]\n")
 
 
 def print_to_console(number_threads, compared_chemicals_list, total_time):

@@ -7,13 +7,14 @@
 #include <map>
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include <math.h>
 #include <omp.h>
 
 std::vector<std::tuple<std::string, std::string>> openFile()
 {
     std::string chemicalString;
-    std::ifstream infile("chemicals.tsv");
+    std::ifstream infile("ZINC_chemicals.tsv");
     std::vector<std::tuple<std::string, std::string>> list;
 
     while(std::getline(infile, chemicalString))
@@ -91,10 +92,10 @@ std::vector<int> getPivots(int chemicalsLength, int numberProcessors)
     return pivotsList;
 }
 
-std::vector<std::tuple<std::string, std::string, float>> fillComparedList(
+std::vector<std::string> fillComparedList(
     std::vector<std::tuple<std::string, std::string>> chemicalsList, int pivotMin, int pivotMax)
 {
-    std::vector<std::tuple<std::string, std::string, float>> comparedChemicalsList;
+    std::vector<std::string> comparedChemicalsList;
     std::map<char, int> lettersA, lettersB;
     float coefficient;
     for (int i = pivotMin; i < pivotMax; i++)
@@ -106,27 +107,30 @@ std::vector<std::tuple<std::string, std::string, float>> fillComparedList(
             coefficient = getJacTanCoefficient(getNumberChemicalElements(lettersA), 
                                                getNumberChemicalElements(lettersB), 
                                                getNumberCommonElements(lettersA, lettersB));
-            comparedChemicalsList.push_back(std::make_tuple(std::get<0>(chemicalsList.at(i)),
-                                            std::get<0>(chemicalsList.at(j)),
-                                            coefficient));
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << coefficient;
+            comparedChemicalsList.push_back(std::get<0>(chemicalsList.at(i)) + "\t" +
+                                            std::get<0>(chemicalsList.at(j)) + "\t" +
+                                            ss.str());
         }
     }
     return comparedChemicalsList;
 }
 
-void writeFile(std::vector<std::vector<std::tuple<std::string, std::string, float>>> comparedChemicalsList, 
+void writeFile(std::vector<std::vector<std::string>> comparedChemicalsList, 
     int numberThreads, std::chrono::duration<double> elapsedSeconds)
 {
     std::ofstream ofs("chem_sim_total_C++.tsv", std::ofstream::out);
     ofs << "Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n";
     for (int i = 0; i < numberThreads; i++)
     {
+        std::cout << comparedChemicalsList[i].size() << "\n";
         for (int j = 0; j < comparedChemicalsList[i].size(); j++)
         {
-             ofs << std::get<0>(comparedChemicalsList.at(i).at(j)) << "\t" << std::get<1>(comparedChemicalsList.at(i).at(j)) << "\t" << std::get<2>(comparedChemicalsList.at(i).at(j)) << "\n";
+             ofs << comparedChemicalsList.at(i).at(j) << "\n";
         }
     }
-    ofs << "Total time = " << elapsedSeconds.count() << "\n";
+    ofs << "Total time = " << elapsedSeconds.count() << " [s]\n";
 }
 
 int main()
@@ -134,7 +138,7 @@ int main()
     int numberThreads = omp_get_max_threads();
     std::vector<std::tuple<std::string, std::string>> chemicalsList = openFile();
     std::vector<int> pivots = getPivots(chemicalsList.size(), numberThreads);
-    std::vector<std::vector<std::tuple<std::string, std::string, float>>> comparedChemicals;
+    std::vector<std::vector<std::string>> comparedChemicals;
     comparedChemicals.resize(8);
 	auto start = std::chrono::system_clock::now();
     #pragma omp parallel num_threads(numberThreads)
