@@ -15,7 +15,7 @@
 std::vector<std::tuple<std::string, std::string>> openFile()
 {
     std::string chemicalString;
-    std::ifstream infile("chemicals.tsv");
+    std::ifstream infile("ZINC_chemicals.tsv");
     std::vector<std::tuple<std::string, std::string>> list;
 
     while(std::getline(infile, chemicalString))

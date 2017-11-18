@@ -6,3 +6,7 @@ jaccard_tanimoto
 chem_sim_total_C\+\+\.tsv
 
 chem_sim_total_Python\.tsv
+
+chem_sim_total_Python_Processes\.tsv
+
+chem_sim_total_Python_Threads\.tsv

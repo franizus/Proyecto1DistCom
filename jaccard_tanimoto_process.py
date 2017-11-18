@@ -8,7 +8,7 @@ import multiprocessing as mp
 def open_file():
     """Opens a tsv file and returns a list with the data."""
     chemicals_list = []
-    with open("chemicals.tsv") as file:
+    with open("ZINC_chemicals.tsv") as file:
         reader = csv.reader(file, delimiter="\t", quotechar='"')
         for row in reader:
             row_aux = (row[1], row[3])
