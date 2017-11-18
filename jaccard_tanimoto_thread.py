@@ -79,17 +79,17 @@ def fill_compared_list(chemicals_list, pivot_min, pivot_max, compared_chemicals_
             compared_chemicals_list.append(row)
 
 
-def start_join_all(thread_array):
-    """Starts and joins all the threads in the array."""
-    for thread in thread_array:
+def start_join_all(thread_list):
+    """Starts and joins all the threads in the list."""
+    for thread in thread_list:
         thread.start()
-    for thread in thread_array:
+    for thread in thread_list:
         thread.join()
 
 
 def write_file(number_threads, compared_chemicals_list, total_time):
     """Writes a tsv file with the compared chemicals."""
-    with open("chem_sim_total_Python.tsv", "w") as record_file:
+    with open("chem_sim_total_Python_Threads.tsv", "w") as record_file:
         record_file.write("Chem_ID_1\tChem_ID_2\tTanimoto_similarity\n")
         for i in range(number_threads):
             print(len(compared_chemicals_list[i]))
