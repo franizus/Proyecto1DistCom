@@ -38,13 +38,16 @@ std::map<char, int> analyzeString(std::string chemicalCompound)
     std::map<char, int> analyzedString;
     for (char &c : chemicalCompound)
     {
-        if (analyzedString.count(c) > 0)
+        if ((c >= '@' && c <= 'Z') || (c >= 'a' && c <= 'z'))
         {
-            analyzedString[c]++;
-        }
-        else
-        {
-            analyzedString[c] = 1;
+            if (analyzedString.count(c) > 0)
+            {
+                analyzedString[c]++;
+            }
+            else
+            {
+                analyzedString[c] = 1;
+            }
         }
     }
     if (analyzedString.count('@') > 0)

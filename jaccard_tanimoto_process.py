@@ -2,6 +2,7 @@
 import csv
 import math
 import time
+import re
 import multiprocessing as mp
 
 
@@ -19,6 +20,7 @@ def open_file():
 def analyze_string(chemical_compound):
     """Analyzes the string of chemical compound's elements \
     and returns the analyzed data in a dictionary."""
+    chemical_compound = "".join(re.findall("[a-zA-Z@]+", chemical_compound))
     analyzed_string = {}
     for character in chemical_compound:
         if character in analyzed_string:
