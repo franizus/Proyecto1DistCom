@@ -170,7 +170,7 @@ int main()
     std::vector<std::tuple<std::string, std::string>> chemicalsList = openFile();
     std::vector<int> pivots = getPivots(chemicalsList.size(), numberThreads);
     std::vector<std::vector<std::string>> comparedChemicals;
-    comparedChemicals.resize(8);
+    comparedChemicals.resize(numberThreads);
     auto start = std::chrono::system_clock::now();
     #pragma omp parallel num_threads(numberThreads)
     {
